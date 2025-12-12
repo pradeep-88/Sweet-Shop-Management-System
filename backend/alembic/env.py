@@ -7,6 +7,8 @@ sys.path.append(str(BASE_DIR))
 
 from app.core.config import settings
 from app.database.base import Base
+import app.database.imports
+
 import app.models  # noqa
 
 
