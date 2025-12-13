@@ -1,14 +1,15 @@
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
-
 from app.repositories.user_repo import UserRepository
 from app.models.user import User
 from app.core.security import create_access_token
+from fastapi.security import OAuth2PasswordBearer
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 class AuthService:
+    oauth2_scheme = oauth2_scheme
 
     @staticmethod
     def hash_password(password: str) -> str:
@@ -19,12 +20,11 @@ class AuthService:
         return pwd_context.verify(plain_password, hashed_password)
 
     @staticmethod
-    def register(
-        db: Session,
-        email: str,
-        password: str,
-        role: str = "staff",
-    ):
+    def register(db, email: str, password: str, role: str = "staff"):
+        existing_user = UserRepository.get_by_email(db, email)
+        if existing_user:
+            return None
+
         user = User(
             email=email,
             hashed_password=AuthService.hash_password(password),
@@ -33,7 +33,7 @@ class AuthService:
         return UserRepository.create(db, user)
 
     @staticmethod
-    def login(db: Session, email: str, password: str):
+    def login(db, email: str, password: str):
         user = UserRepository.get_by_email(db, email)
         if not user:
             return None
