@@ -34,8 +34,13 @@ class AuthService:
 
     @staticmethod
     def login(db, email: str, password: str):
-        user = UserRepository.get_by_email(db, email)
+        repo = UserRepository(db)
+        user = repo.get_by_email(email)
+
         if not user:
+            return None
+
+        if not user.hashed_password:
             return None
 
         if not AuthService.verify_password(password, user.hashed_password):

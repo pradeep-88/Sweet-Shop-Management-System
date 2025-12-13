@@ -3,14 +3,18 @@ from app.models.user import User
 
 
 class UserRepository:
+    def __init__(self, db: Session):
+        self.db = db
 
-    @staticmethod
-    def get_by_email(db: Session, email: str):
-        return db.query(User).filter(User.email == email).first()
+    def get_by_email(self, email: str):
+        return (
+            self.db.query(User)
+            .filter(User.email == email)
+            .first()
+        )
 
-    @staticmethod
-    def create(db: Session, user: User):
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+    def create(self, user: User):
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
         return user
