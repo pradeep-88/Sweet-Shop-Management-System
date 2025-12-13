@@ -32,15 +32,30 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     return created_user
 
 
+from fastapi.security import OAuth2PasswordRequestForm
+
 @router.post("/login")
-def login(form_data=Depends(AuthService.oauth2_scheme), db: Session = Depends(get_db)):
-    token = AuthService.login(db, form_data.username, form_data.password)
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    token = AuthService.login(
+        db,
+        email=form_data.username,
+        password=form_data.password,
+    )
+
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
+            detail="Invalid email or password",
         )
-    return {"access_token": token, "token_type": "bearer"}
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+    }
+
 
 
 @router.get("/me", response_model=UserResponse)
